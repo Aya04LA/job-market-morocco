@@ -1,0 +1,114 @@
+﻿skill,count,category,pct_jobs
+organisation,293,Soft Skills,48.8
+rigueur,251,Soft Skills,41.8
+communication,209,Soft Skills,34.8
+autonomie,126,Soft Skills,21.0
+français,95,Languages,15.8
+anglais,74,Languages,12.3
+adaptabilité,71,Soft Skills,11.8
+comptabilité,55,Business & Management,9.2
+audit,50,Business & Management,8.3
+leadership,49,Soft Skills,8.2
+réactivité,39,Soft Skills,6.5
+sens du service,38,Soft Skills,6.3
+agile,28,Business & Management,4.7
+gestion de projet,28,Business & Management,4.7
+sap,22,Business & Management,3.7
+erp,21,Business & Management,3.5
+esprit d'équipe,20,Soft Skills,3.3
+travail en équipe,20,Soft Skills,3.3
+tableau,19,Data & AI,3.2
+capacité d'analyse,19,Soft Skills,3.2
+contrôle de gestion,16,Business & Management,2.7
+crm,16,Business & Management,2.7
+azure,14,Cloud & DevOps,2.3
+arabe,13,Languages,2.2
+sql,13,Programming Languages,2.2
+python,12,Programming Languages,2.0
+linux,11,Cloud & DevOps,1.8
+scrum,11,Business & Management,1.8
+microsoft office,11,Business & Management,1.8
+analyse financière,10,Business & Management,1.7
+ci/cd,10,Cloud & DevOps,1.7
+java,10,Programming Languages,1.7
+fiscalité,10,Business & Management,1.7
+devops,9,Cloud & DevOps,1.5
+git,9,Cloud & DevOps,1.5
+gitlab,9,Cloud & DevOps,1.5
+vue,9,Web & Frontend,1.5
+modélisation,8,Data & AI,1.3
+power bi,8,Data & AI,1.3
+jenkins,8,Cloud & DevOps,1.3
+salesforce,8,Business & Management,1.3
+english,7,Languages,1.2
+aws,7,Cloud & DevOps,1.2
+pack office,7,Business & Management,1.2
+polyvalence,6,Soft Skills,1.0
+analyse de données,6,Data & AI,1.0
+gitlab ci,6,Cloud & DevOps,1.0
+esprit d'analyse,6,Soft Skills,1.0
+api rest,6,Web & Frontend,1.0
+gcp,6,Cloud & DevOps,1.0
+kubernetes,6,Cloud & DevOps,1.0
+docker,6,Cloud & DevOps,1.0
+express,5,Web & Frontend,0.8
+javascript,5,Programming Languages,0.8
+bash,5,Programming Languages,0.8
+business intelligence,5,Data & AI,0.8
+ansible,5,Cloud & DevOps,0.8
+oracle,5,Databases,0.8
+french,5,Languages,0.8
+google cloud,5,Cloud & DevOps,0.8
+gestion du stress,4,Soft Skills,0.7
+lean,4,Business & Management,0.7
+react,4,Web & Frontend,0.7
+redis,4,Databases,0.7
+terraform,4,Cloud & DevOps,0.7
+github,3,Cloud & DevOps,0.5
+css,3,Web & Frontend,0.5
+json,3,Web & Frontend,0.5
+soap,3,Web & Frontend,0.5
+go,3,Programming Languages,0.5
+kanban,3,Business & Management,0.5
+mariadb,3,Databases,0.5
+mysql,3,Databases,0.5
+arabic,3,Languages,0.5
+bilingue,3,Languages,0.5
+typescript,3,Programming Languages,0.5
+github actions,2,Cloud & DevOps,0.3
+spark,2,Data & AI,0.3
+html,2,Web & Frontend,0.3
+node.js,2,Web & Frontend,0.3
+angular,2,Web & Frontend,0.3
+mongodb,2,Databases,0.3
+rabbitmq,2,Cloud & DevOps,0.3
+php,2,Programming Languages,0.3
+kafka,2,Cloud & DevOps,0.3
+microservices,2,Cloud & DevOps,0.3
+swift,2,Programming Languages,0.3
+vba,1,Programming Languages,0.2
+six sigma,1,Business & Management,0.2
+gestion budgétaire,1,Business & Management,0.2
+trilingue,1,Languages,0.2
+laravel,1,Web & Frontend,0.2
+vue.js,1,Web & Frontend,0.2
+symfony,1,Web & Frontend,0.2
+sql server,1,Databases,0.2
+t-sql,1,Programming Languages,0.2
+apache,1,Cloud & DevOps,0.2
+elasticsearch,1,Databases,0.2
+postgresql,1,Databases,0.2
+spring,1,Web & Frontend,0.2
+spring boot,1,Web & Frontend,0.2
+cassandra,1,Databases,0.2
+hadoop,1,Data & AI,0.2
+scala,1,Programming Languages,0.2
+shell,1,Programming Languages,0.2
+traitement de données,1,Data & AI,0.2
+etl,1,Data & AI,0.2
+computer vision,1,Data & AI,0.2
+deep learning,1,Data & AI,0.2
+kotlin,1,Programming Languages,0.2
+pytorch,1,Data & AI,0.2
+tensorflow,1,Data & AI,0.2
+espagnol,1,Languages,0.2
