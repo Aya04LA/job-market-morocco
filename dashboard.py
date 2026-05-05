@@ -255,6 +255,7 @@ with st.sidebar:
         "🔍 Explorer les offres",
         "📄 Analyse de CV",
         "🤖 Performance ML",
+        "💬 Chatbot",
     ])
 
     st.markdown("---")
@@ -790,3 +791,204 @@ elif page == "🤖 Performance ML":
         sec_df = sec_df.merge(pred_count, on="Secteur")
         sec_df["% prédits"] = (sec_df["Prédits par ML"] / sec_df["Nombre d'offres"] * 100).round(1).astype(str) + "%"
         st.dataframe(sec_df, use_container_width=True)
+
+
+# =============================================================================
+# PAGE 5: Chatbot
+# =============================================================================
+elif page == "💬 Chatbot":
+ 
+    import os
+    from groq import Groq
+ 
+    st.markdown(f"""
+    <div class='page-header'>
+        <h1>Assistant IA 💬</h1>
+        <p>Posez vos questions sur le marché de l'emploi au Maroc ou demandez des conseils pour votre CV</p>
+    </div>
+    """, unsafe_allow_html=True)
+ 
+    # ── Mode selector ────────────────────────────────────────────────────────
+    mode = st.radio(
+        "Mode",
+        ["🧭 Marché de l'emploi", "📄 Conseils CV"],
+        horizontal=True,
+        label_visibility="collapsed",
+    )
+ 
+    # ── Build system prompt based on mode ────────────────────────────────────
+    # WHY different system prompts?
+    # The system prompt shapes the model's persona and focus.
+    # A job market analyst and a CV coach have different expertise and tone.
+    # Switching the system prompt is cheaper and faster than two separate models.
+ 
+    if df is not None:
+        # Build a compact market summary to inject as context
+        # WHY inject data? The LLM has no knowledge of YOUR dataset.
+        # We summarize the key stats and pass them in the system prompt
+        # so the chatbot answers based on real scraped data, not generic knowledge.
+        top_skills    = sf.head(10)["skill"].tolist() if sf is not None else []
+        top_sectors   = df["sector_final"].value_counts().head(5).to_dict() if df is not None else {}
+        top_cities    = df["location_clean"].value_counts().head(5).to_dict() if df is not None else {}
+        n_jobs        = len(df) if df is not None else 0
+ 
+        market_context = f"""
+Tu as accès aux données réelles du marché de l'emploi au Maroc (scraped depuis Rekrute et Emploi.ma):
+- {n_jobs} offres d'emploi analysées
+- Top compétences demandées: {", ".join(top_skills)}
+- Top secteurs: {", ".join([f"{k} ({v} offres)" for k, v in top_sectors.items()])}
+- Top villes: {", ".join([f"{k} ({v} offres)" for k, v in top_cities.items()])}
+"""
+    else:
+        market_context = "Tu analyses le marché de l'emploi au Maroc."
+ 
+    SYSTEM_PROMPTS = {
+        "🧭 Marché de l'emploi": f"""Tu es un expert analyste du marché de l'emploi au Maroc.
+{market_context}
+Réponds en français. Sois précis, data-driven, et cite les chiffres réels quand tu les connais.
+Si on te pose une question hors sujet emploi/marché marocain, redirige poliment vers ton domaine.
+Garde tes réponses concises (max 200 mots sauf si on demande plus de détails).""",
+ 
+        "📄 Conseils CV": f"""Tu es un coach CV expert pour le marché marocain, spécialisé dans les secteurs tech, finance et conseil (IBM, Oracle, BCG Maroc).
+{market_context}
+Tu aides à:
+- Améliorer la rédaction des expériences et projets
+- Optimiser le CV pour les ATS (Applicant Tracking Systems)
+- Identifier les compétences à mettre en avant selon le secteur visé
+- Préparer les candidatures pour des grandes entreprises au Maroc
+Réponds en français. Sois direct et actionnable. Max 200 mots sauf si on demande plus.""",
+    }
+ 
+    # ── Initialize chat history ───────────────────────────────────────────────
+    # WHY session_state? Streamlit reruns the entire script on every interaction.
+    # session_state persists data across reruns — it's how you keep chat history.
+    # We use a different key per mode so switching modes clears the conversation.
+ 
+    history_key = f"chat_history_{mode}"
+    if history_key not in st.session_state:
+        st.session_state[history_key] = []
+ 
+    # ── Display chat history ──────────────────────────────────────────────────
+    chat_container = st.container()
+    with chat_container:
+        if not st.session_state[history_key]:
+            # Welcome message
+            welcome = {
+                "🧭 Marché de l'emploi": "Bonjour ! Je suis votre analyste du marché de l'emploi marocain. Posez-moi vos questions sur les secteurs, les compétences demandées, les salaires ou les villes les plus actives. 📊",
+                "📄 Conseils CV": "Bonjour ! Je suis votre coach CV pour le marché marocain. Partagez votre expérience ou vos questions — je vous aide à optimiser votre candidature pour IBM, Oracle, BCG et les grandes entreprises au Maroc. 🎯",
+            }
+            st.markdown(f"""
+            <div style='background:{T["card"]}; border:1px solid {T["border"]};
+                        border-radius:12px; padding:16px 20px; margin:8px 0;
+                        border-left: 3px solid {T["accent"]};'>
+                <div style='font-size:0.75rem; color:{T["text2"]}; margin-bottom:6px;'>🤖 Assistant</div>
+                <div style='color:{T["text"]}; font-size:0.9rem;'>{welcome[mode]}</div>
+            </div>
+            """, unsafe_allow_html=True)
+ 
+        for msg in st.session_state[history_key]:
+            is_user = msg["role"] == "user"
+            align   = "right" if is_user else "left"
+            bg      = T["accent"] + "22" if is_user else T["card"]
+            border  = T["accent"] if is_user else T["border"]
+            label   = "Vous" if is_user else "🤖 Assistant"
+ 
+            st.markdown(f"""
+            <div style='background:{bg}; border:1px solid {border};
+                        border-radius:12px; padding:14px 18px; margin:6px 0;
+                        border-left: 3px solid {border};'>
+                <div style='font-size:0.75rem; color:{T["text2"]}; margin-bottom:4px;'>{label}</div>
+                <div style='color:{T["text"]}; font-size:0.9rem; white-space:pre-wrap;'>{msg["content"]}</div>
+            </div>
+            """, unsafe_allow_html=True)
+ 
+    # ── Input ─────────────────────────────────────────────────────────────────
+    with st.form(key=f"chat_form_{mode}", clear_on_submit=True):
+        col_input, col_btn = st.columns([5, 1])
+        with col_input:
+            user_input = st.text_input(
+                "Message",
+                placeholder="Ex: Quelles sont les compétences les plus demandées à Casablanca ?" if "emploi" in mode else "Ex: Comment améliorer mon expérience en data science ?",
+                label_visibility="collapsed",
+            )
+        with col_btn:
+            submitted = st.form_submit_button("Envoyer →", use_container_width=True)
+ 
+    # ── Call Groq API ─────────────────────────────────────────────────────────
+    if submitted and user_input.strip():
+        # Add user message to history
+        st.session_state[history_key].append({
+            "role": "user",
+            "content": user_input.strip(),
+        })
+ 
+        # Get API key from environment (HuggingFace secret or local .env)
+        api_key = os.environ.get("GROQ_API_KEY", "")
+ 
+        if not api_key:
+            st.error("⚠️ GROQ_API_KEY non trouvée. Ajoutez-la dans les secrets de votre Space HuggingFace.")
+        else:
+            try:
+                with st.spinner("Réflexion en cours..."):
+                    client = Groq(api_key=api_key)
+ 
+                    # Build messages list: system prompt + full history
+                    # WHY full history? The model has no memory between calls.
+                    # We resend the entire conversation each time so it has context.
+                    # This is called "context window management" — standard in LLM apps.
+                    messages = [{"role": "system", "content": SYSTEM_PROMPTS[mode]}]
+                    messages += st.session_state[history_key]
+ 
+                    response = client.chat.completions.create(
+                        model="llama-3.1-8b-instant",
+                        messages=messages,
+                        max_tokens=400,      # keep responses concise
+                        temperature=0.7,     # slight creativity, not too random
+                    )
+ 
+                    assistant_reply = response.choices[0].message.content.strip()
+ 
+                # Add assistant reply to history
+                st.session_state[history_key].append({
+                    "role": "assistant",
+                    "content": assistant_reply,
+                })
+ 
+                st.rerun()  # refresh to show new messages
+ 
+            except Exception as e:
+                st.error(f"Erreur API : {e}")
+ 
+    # ── Clear conversation button ─────────────────────────────────────────────
+    if st.session_state[history_key]:
+        if st.button("🗑️ Effacer la conversation"):
+            st.session_state[history_key] = []
+            st.rerun()
+ 
+    # ── Suggested questions ───────────────────────────────────────────────────
+    if not st.session_state[history_key]:
+        suggestions = {
+            "🧭 Marché de l'emploi": [
+                "Quelles compétences techniques sont les plus demandées au Maroc ?",
+                "Quel secteur recrute le plus à Casablanca ?",
+                "Quel est le profil type d'une offre CDI en IT au Maroc ?",
+                "Quelles villes offrent le plus d'opportunités en finance ?",
+            ],
+            "📄 Conseils CV": [
+                "Comment présenter un projet de Machine Learning sur mon CV ?",
+                "Quelles compétences mettre en avant pour IBM Maroc ?",
+                "Comment optimiser mon CV pour les ATS ?",
+                "J'ai un stage de 2 mois, comment le valoriser ?",
+            ],
+        }
+        st.markdown(f"<div style='color:{T['text2']}; font-size:0.8rem; margin-top:16px;'>💡 Suggestions :</div>", unsafe_allow_html=True)
+        cols = st.columns(2)
+        for i, suggestion in enumerate(suggestions[mode]):
+            with cols[i % 2]:
+                st.markdown(f"""
+                <div style='background:{T["card"]}; border:1px solid {T["border"]};
+                            border-radius:8px; padding:10px 14px; margin:4px 0;
+                            font-size:0.8rem; color:{T["text2"]};'>
+                    {suggestion}
+                </div>
+                """, unsafe_allow_html=True)
