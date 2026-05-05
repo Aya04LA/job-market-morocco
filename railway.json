@@ -1,0 +1,9 @@
+{
+  "build": {
+    "builder": "nixpacks"
+  },
+  "deploy": {
+    "cronSchedule": "0 1 * * *",
+    "startCommand": "python run_pipeline.py"
+  }
+}
