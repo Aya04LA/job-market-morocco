@@ -1,0 +1,67 @@
+name: Weekly Job Market Pipeline
+
+on:
+  schedule:
+    - cron: "0 1 * * 1"  # Every Monday 1AM UTC = 2AM Morocco
+  workflow_dispatch:      # Manual trigger from GitHub UI
+    inputs:
+      max_pages:
+        description: "Pages per source (default 5)"
+        required: false
+        default: "5"
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install requests beautifulsoup4 pandas scikit-learn \
+            mlflow spacy pdfminer.six huggingface_hub playwright numpy groq
+          pip install https://github.com/explosion/spacy-models/releases/download/fr_core_news_md-3.8.0/fr_core_news_md-3.8.0-py3-none-any.whl
+          playwright install chromium
+          playwright install-deps chromium
+
+      - name: Restore database cache
+        uses: actions/cache@v4
+        with:
+          path: jobs.db
+          key: jobs-db-${{ runner.os }}
+          restore-keys: jobs-db-
+
+      - name: Run pipeline
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_REPO: "yaya11111111111111/job-market-morocco"
+          DB_PATH: "jobs.db"
+          MAX_PAGES: ${{ github.event.inputs.max_pages || '5' }}
+        run: python run_pipeline.py
+
+      - name: Upload outputs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pipeline-outputs-${{ github.run_number }}
+          path: |
+            jobs_nlp.csv
+            skills_frequency.csv
+          retention-days: 30
+
+      - name: Save database cache
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: jobs.db
+          key: jobs-db-${{ runner.os }}-${{ github.run_number }}
