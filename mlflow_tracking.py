@@ -25,6 +25,7 @@ import logging
 import pickle
 import pandas as pd
 import re
+import unicodedata
 from datetime import datetime
 from pathlib import Path
 
@@ -139,24 +140,29 @@ def run_tracked_pipeline(db_path="jobs.db"):
         # ── Log sector distribution as a metric per sector ───────────────────
         for sector, count in df["sector_final"].value_counts().items():
             # Sanitize sector name for MLflow (only alphanumerics, _, -, ., space, :, /)
+            # Be aggressive: first strip everything that's not explicitly allowed
             safe_name = sector
-            # First normalize Unicode characters
-            safe_name = (safe_name
-                .replace("é", "e").replace("è", "e").replace("ê", "e").replace("ë", "e")
-                .replace("à", "a").replace("â", "a").replace("ä", "a")
-                .replace("î", "i").replace("ï", "i")
-                .replace("ô", "o").replace("ö", "o")
-                .replace("ù", "u").replace("û", "u").replace("ü", "u")
-                .replace("ç", "c")
-                .replace("'", "").replace("'", "")   # both types of apostrophes
+            
+            # Step 1: Normalize accented characters to ASCII equivalents
+            safe_name = ''.join(
+                c if ord(c) < 128 else unicodedata.normalize('NFKD', c).encode('ascii', 'ignore').decode()
+                for c in safe_name
             )
-            # Replace special chars and multiple spaces/underscores
-            safe_name = re.sub(r'[^a-zA-Z0-9_\-\.\s:/]', '', safe_name)  # Remove invalid chars
-            safe_name = re.sub(r'\s+', '_', safe_name)  # Multiple spaces → single underscore
-            safe_name = re.sub(r'_+', '_', safe_name)   # Multiple underscores → single underscore
-            safe_name = safe_name.strip('_')            # Remove leading/trailing underscores
+            
+            # Step 2: Remove all characters except alphanumerics, space, and allowed special chars (_, -, ., :, /)
+            safe_name = re.sub(r'[^a-zA-Z0-9\s\-\._:/]', '', safe_name)
+            
+            # Step 3: Replace spaces with underscores
+            safe_name = re.sub(r'\s+', '_', safe_name)
+            
+            # Step 4: Collapse multiple underscores
+            safe_name = re.sub(r'_+', '_', safe_name)
+            
+            # Step 5: Remove leading/trailing underscores
+            safe_name = safe_name.strip('_-')
             
             if safe_name:  # Only log if we have a non-empty name
+                logger.debug(f"Sector sanitized: '{sector}' → '{safe_name}'")
                 mlflow.log_metric(f"sector_{safe_name}", int(count))
 
         run_id = mlflow.active_run().info.run_id
