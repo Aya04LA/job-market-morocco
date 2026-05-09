@@ -131,7 +131,20 @@ def run_tracked_pipeline(db_path="jobs.db"):
 
         # ── Log sector distribution as a metric per sector ───────────────────
         for sector, count in df["sector_final"].value_counts().items():
-            safe_name = sector.replace(" ", "_").replace("&", "and").replace("/", "_")
+            safe_name = (sector
+                .replace(" ", "_")
+                .replace("&", "and")
+                .replace("/", "_")
+                .replace("'", "")
+                .replace("'", "")   # curly apostrophe
+                .replace("(", "")
+                .replace(")", "")
+                .replace("é", "e")
+                .replace("è", "e")
+                .replace("ê", "e")
+                .replace("à", "a")
+                .replace("â", "a")
+            )
             mlflow.log_metric(f"sector_{safe_name}", int(count))
 
         run_id = mlflow.active_run().info.run_id
