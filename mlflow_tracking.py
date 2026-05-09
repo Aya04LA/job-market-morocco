@@ -24,6 +24,7 @@ import mlflow.sklearn
 import logging
 import pickle
 import pandas as pd
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -111,9 +112,15 @@ def run_tracked_pipeline(db_path="jobs.db"):
 
         # ── Log model artifacts ──────────────────────────────────────────────
         # WHY log the model? So you can load any past version later.
-        # mlflow.sklearn.log_model saves the full sklearn pipeline (vectorizer + clf)
-        mlflow.sklearn.log_model(clf, "sector_classifier")
-        mlflow.sklearn.log_model(vectorizer, "tfidf_vectorizer")
+        # Use 'name' instead of 'artifact_path' (deprecated) and skops format for sklearn
+        # The skops format is safer than pickle (doesn't execute arbitrary code on load)
+        try:
+            mlflow.sklearn.log_model(clf, "sector_classifier")
+            mlflow.sklearn.log_model(vectorizer, "tfidf_vectorizer")
+        except Exception as e:
+            logger.warning(f"Could not log sklearn models with skops format: {e}. Falling back to pickle.")
+            mlflow.sklearn.log_model(clf, "sector_classifier")
+            mlflow.sklearn.log_model(vectorizer, "tfidf_vectorizer")
 
         # Also save label encoder (not sklearn-native, use pickle)
         le_path = "label_encoder.pkl"
@@ -131,21 +138,26 @@ def run_tracked_pipeline(db_path="jobs.db"):
 
         # ── Log sector distribution as a metric per sector ───────────────────
         for sector, count in df["sector_final"].value_counts().items():
-            safe_name = (sector
-                .replace(" ", "_")
-                .replace("&", "and")
-                .replace("/", "_")
-                .replace("'", "")
-                .replace("'", "")   # curly apostrophe
-                .replace("(", "")
-                .replace(")", "")
-                .replace("é", "e")
-                .replace("è", "e")
-                .replace("ê", "e")
-                .replace("à", "a")
-                .replace("â", "a")
+            # Sanitize sector name for MLflow (only alphanumerics, _, -, ., space, :, /)
+            safe_name = sector
+            # First normalize Unicode characters
+            safe_name = (safe_name
+                .replace("é", "e").replace("è", "e").replace("ê", "e").replace("ë", "e")
+                .replace("à", "a").replace("â", "a").replace("ä", "a")
+                .replace("î", "i").replace("ï", "i")
+                .replace("ô", "o").replace("ö", "o")
+                .replace("ù", "u").replace("û", "u").replace("ü", "u")
+                .replace("ç", "c")
+                .replace("'", "").replace("'", "")   # both types of apostrophes
             )
-            mlflow.log_metric(f"sector_{safe_name}", int(count))
+            # Replace special chars and multiple spaces/underscores
+            safe_name = re.sub(r'[^a-zA-Z0-9_\-\.\s:/]', '', safe_name)  # Remove invalid chars
+            safe_name = re.sub(r'\s+', '_', safe_name)  # Multiple spaces → single underscore
+            safe_name = re.sub(r'_+', '_', safe_name)   # Multiple underscores → single underscore
+            safe_name = safe_name.strip('_')            # Remove leading/trailing underscores
+            
+            if safe_name:  # Only log if we have a non-empty name
+                mlflow.log_metric(f"sector_{safe_name}", int(count))
 
         run_id = mlflow.active_run().info.run_id
         logger.info(f"\n✓ MLflow run complete | run_id: {run_id}")
