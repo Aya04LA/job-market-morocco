@@ -7,13 +7,34 @@ logger = logging.getLogger(__name__)
 
 def push_to_huggingface(files):
     try:
-        from huggingface_hub import HfApi
-        api = HfApi()
+        from huggingface_hub import HfApi, login, create_repo
+        
+        # 1. Fetch secrets from environment variables
         hf_token = os.environ.get("HF_TOKEN")
         hf_repo = os.environ.get("HF_SPACE_REPO", "yaya11111111111111/job-market-morocco")
+        
         if not hf_token:
             logger.warning("HF_TOKEN not set - skipping")
             return False
+        
+        # 2. Force authentication globally
+        logger.info("Authenticating with Hugging Face token...")
+        login(token=hf_token)
+        
+        # 3. Defensive check: verify/create the target space
+        try:
+            create_repo(
+                repo_id=hf_repo,
+                repo_type="space",
+                space_sdk="streamlit",
+                exist_ok=True
+            )
+            logger.info(f"Target Space '{hf_repo}' verified/created.")
+        except Exception as e:
+            logger.warning(f"Repository pre-check warning: {e}")
+        
+        # 4. Upload files
+        api = HfApi()
         for f in files:
             if Path(f).exists():
                 api.upload_file(path_or_fileobj=f, path_in_repo=Path(f).name,
