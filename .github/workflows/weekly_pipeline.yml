@@ -28,9 +28,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install requests beautifulsoup4 pandas scikit-learn \
-            mlflow spacy pdfminer.six huggingface_hub playwright numpy groq
-          pip install https://github.com/explosion/spacy-models/releases/download/fr_core_news_md-3.8.0/fr_core_news_md-3.8.0-py3-none-any.whl
+          pip install -r requirements.txt
           playwright install chromium
           playwright install-deps chromium
 
