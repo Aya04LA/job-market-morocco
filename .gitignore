@@ -11,3 +11,4 @@ rekrute_*.csv
 emploi_ma_*.csv
 jobs_cleaned.csv
 .ipynb_checkpoints/
+mlflow.db

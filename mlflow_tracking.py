@@ -22,6 +22,7 @@
 import mlflow
 import mlflow.sklearn
 import logging
+import os
 import pickle
 import pandas as pd
 import re
@@ -36,12 +37,15 @@ logger = logging.getLogger(__name__)
 EXPERIMENT_NAME = "job_market_morocco"
 
 
-def setup_mlflow(tracking_uri="./mlruns"):
+def setup_mlflow(tracking_uri=None):
     """
-    Configure MLflow to store runs locally in ./mlruns folder.
+    Configure MLflow to store runs in a local SQLite file (mlflow.db).
+    Recent MLflow versions refuse the old ./mlruns file store.
+    Override with the MLFLOW_TRACKING_URI environment variable.
     WHY local? For development. When you deploy to Railway, you can
     point this to a remote MLflow server or use MLflow on HuggingFace.
     """
+    tracking_uri = tracking_uri or os.environ.get("MLFLOW_TRACKING_URI", "sqlite:///mlflow.db")
     mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_experiment(EXPERIMENT_NAME)
     logger.info(f"MLflow tracking URI: {tracking_uri}")

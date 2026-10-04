@@ -10,6 +10,7 @@
 #   4. 🤖 Performance ML   — MLflow metrics + classifier info
 # =============================================================================
 
+import os
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -717,7 +718,7 @@ elif page == "🤖 Performance ML":
     # ── Try to load MLflow runs ──────────────────────────────────────────────
     try:
         import mlflow
-        mlflow.set_tracking_uri("./mlruns")
+        mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI", "sqlite:///mlflow.db"))
         client = mlflow.tracking.MlflowClient()
         exp    = client.get_experiment_by_name("job_market_morocco")
 
@@ -766,7 +767,7 @@ elif page == "🤖 Performance ML":
 
     except Exception as e:
         st.warning(f"MLflow non accessible : {e}")
-        st.markdown("Lancez `mlflow ui` dans le terminal pour accéder à l'interface complète.")
+        st.markdown("Lancez `mlflow ui --backend-store-uri sqlite:///mlflow.db` dans le terminal pour accéder à l'interface complète.")
 
     # ── Model explanation ─────────────────────────────────────────────────────
     st.markdown("<div class='section-title'>Choix du modèle — justification</div>", unsafe_allow_html=True)

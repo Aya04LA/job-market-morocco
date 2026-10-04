@@ -74,6 +74,13 @@ MAX_PAGES=2 python run_pipeline.py
 | `HF_TOKEN` | pipeline | Push results to the Space (skipped if unset) |
 | `HF_SPACE_REPO` | pipeline | Target Space |
 | `GROQ_API_KEY` | dashboard | Enables the chatbot |
+| `MLFLOW_TRACKING_URI` | pipeline, dashboard | MLflow store (default `sqlite:///mlflow.db`) |
+
+## Known limitations
+
+- **Emploi.ma currently returns a Cloudflare bot check** to automated browsers, so its scraper
+  collects 0 listings. Rekrute still works. Options: use an official feed or API if Emploi.ma
+  offers one, or replace it with another job board.
 
 ## Automation
 
