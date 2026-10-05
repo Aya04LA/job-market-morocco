@@ -271,7 +271,7 @@ if page == "🏠 Vue d'ensemble":
     st.markdown(f"""
     <div class='page-header'>
         <h1>Vue d'ensemble du marché 🇲🇦</h1>
-        <p>Analyse en temps réel des offres d'emploi au Maroc — Rekrute & Emploi.ma</p>
+        <p>Analyse en temps réel des offres d'emploi au Maroc — Rekrute & Dreamjob</p>
     </div>
     """, unsafe_allow_html=True)
 

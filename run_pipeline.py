@@ -51,14 +51,15 @@ def main():
     max_pages = int(os.environ.get("MAX_PAGES", "5"))
 
     logger.info("[1/3] SCRAPING")
-    try:
-        from scraper_rekrute import scrape_rekrute
-        from scraper_emploi_ma import scrape_emploi_ma
-        df_r = scrape_rekrute(max_pages=max_pages, db_path=db_path)
-        df_e = scrape_emploi_ma(max_pages=max_pages, db_path=db_path)
-        logger.info(f"Rekrute: {len(df_r)}, Emploi.ma: {len(df_e)} new jobs")
-    except Exception as e:
-        logger.error(f"Scraping failed: {e}")
+    # Each source runs independently so one site being down doesn't skip the other
+    from scraper_rekrute import scrape_rekrute
+    from scraper_dreamjob import scrape_dreamjob
+    for name, scrape in [("Rekrute", scrape_rekrute), ("Dreamjob", scrape_dreamjob)]:
+        try:
+            df_new = scrape(max_pages=max_pages, db_path=db_path)
+            logger.info(f"{name}: {len(df_new)} new jobs")
+        except Exception as e:
+            logger.error(f"{name} scraping failed: {e}")
 
     logger.info("[2/3] NLP + MLFLOW")
     try:

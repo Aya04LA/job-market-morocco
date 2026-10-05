@@ -131,6 +131,9 @@ def normalize_location(raw: str, title: str = "") -> str:
 # =============================================================================
 
 SECTOR_MAP = {
+    # Public sector first, so "administration publique" does not fall into RH
+    "secteur public":       "Secteur Public",
+    "fonction publique":    "Secteur Public",
     # IT & Tech
     "informatique":         "IT & Tech",
     "électronique":         "IT & Tech",
@@ -206,6 +209,10 @@ SECTOR_MAP = {
     "logistique":           "Logistique & Transport",
     "transport":            "Logistique & Transport",
     "supply chain":         "Logistique & Transport",
+    "hôtellerie":           "Tourisme & Hôtellerie",
+    "hotellerie":           "Tourisme & Hôtellerie",
+    "tourisme":             "Tourisme & Hôtellerie",
+    "restauration":         "Tourisme & Hôtellerie",
 }
 
 def normalize_sector(raw: str) -> str:

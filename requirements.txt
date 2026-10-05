@@ -17,7 +17,6 @@ pdfminer.six>=20221105
 # Scraping
 requests>=2.31.0
 beautifulsoup4>=4.12.0
-playwright>=1.40.0
 
 # Publishing to the Hugging Face Space
 huggingface_hub

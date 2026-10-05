@@ -9,7 +9,7 @@ Streamlit dashboard with a CV analyzer and an AI career chatbot.
 ## Features
 
 - **Automated scraping** of [Rekrute](https://www.rekrute.com) (requests + BeautifulSoup) and
-  [Emploi.ma](https://www.emploi.ma) (Playwright), deduplicated into a SQLite database
+  [Dreamjob.ma](https://www.dreamjob.ma) (public WordPress REST API), deduplicated into a SQLite database
 - **Skill extraction** with a spaCy `PhraseMatcher` over French job descriptions
 - **Sector classification**: TF-IDF + Logistic Regression fills in jobs posted without a sector
 - **Experiment tracking** with MLflow (cross-validated F1, skill coverage, sector counts per run)
@@ -24,9 +24,9 @@ Streamlit dashboard with a CV analyzer and an AI career chatbot.
 ## Architecture
 
 ```
- Rekrute ──┐                                                 ┌──> MLflow (mlruns/)
+ Rekrute ──┐                                                 ┌──> MLflow (mlflow.db)
            ├─> scrapers ─> jobs.db ─> cleaning + NLP + ML ───┤
- Emploi.ma ┘   (SQLite)                                      └──> jobs_nlp.csv
+ Dreamjob  ┘   (SQLite)                                      └──> jobs_nlp.csv
                                                                   skills_frequency.csv
                                                                         │
                                                        Hugging Face Space (dashboard.py)
@@ -34,7 +34,7 @@ Streamlit dashboard with a CV analyzer and an AI career chatbot.
 
 | File | Role |
 | --- | --- |
-| `scraper_rekrute.py`, `scraper_emploi_ma.py` | Scrape listings into `jobs.db` |
+| `scraper_rekrute.py`, `scraper_dreamjob.py` | Scrape listings into `jobs.db` |
 | `data_cleaning.py` | Normalize titles, cities, contracts, salaries |
 | `nlp_pipeline.py` | Skill extraction, sector classifier, skill frequencies |
 | `mlflow_tracking.py` | Runs the NLP pipeline as a tracked MLflow experiment |
@@ -50,7 +50,6 @@ Requires Python 3.11.
 python -m venv venv
 venv\Scripts\activate          # macOS/Linux: source venv/bin/activate
 pip install -r requirements.txt
-playwright install chromium
 ```
 
 Open the dashboard on the data included in the repo:
@@ -76,12 +75,6 @@ MAX_PAGES=2 python run_pipeline.py
 | `GROQ_API_KEY` | dashboard | Enables the chatbot |
 | `MLFLOW_TRACKING_URI` | pipeline, dashboard | MLflow store (default `sqlite:///mlflow.db`) |
 
-## Known limitations
-
-- **Emploi.ma currently returns a Cloudflare bot check** to automated browsers, so its scraper
-  collects 0 listings. Rekrute still works. Options: use an official feed or API if Emploi.ma
-  offers one, or replace it with another job board.
-
 ## Automation
 
 `.github/workflows/weekly_pipeline.yml` runs every Monday at 01:00 UTC (and on demand from the
@@ -90,5 +83,5 @@ accumulate across weeks, and uploads the output CSVs as build artifacts.
 
 ## Tech stack
 
-Python · pandas · scikit-learn · spaCy · MLflow · Playwright · BeautifulSoup · Streamlit · Plotly ·
+Python · pandas · scikit-learn · spaCy · MLflow · BeautifulSoup · Streamlit · Plotly ·
 Groq · GitHub Actions · Hugging Face Spaces

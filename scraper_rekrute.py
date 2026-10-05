@@ -429,7 +429,7 @@ def scrape_rekrute(max_pages=5, db_path="jobs.db"):
 
 
 # =============================================================================
-# EXPLORATION HELPER (shared with emploi_ma scraper)
+# EXPLORATION HELPER
 # =============================================================================
 
 def explore_data(db_path="jobs.db"):
